@@ -15,9 +15,13 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapAdder extends FragmentActivity implements OnMapReadyCallback {
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class MapAdder extends FragmentActivity implements Serializable, OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private ArrayList<LatLng> position;
     private RatingBar ratingBar;
     //private Button fin;
     private int stars;
@@ -26,6 +30,7 @@ public class MapAdder extends FragmentActivity implements OnMapReadyCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_adder);
+        position = new ArrayList<>();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -48,17 +53,21 @@ public class MapAdder extends FragmentActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        Intent intent = getIntent();
+        Bundle tmp = intent.getBundleExtra("adder");
+        position = (ArrayList<LatLng>)tmp.getSerializable("object");
         // ART -- Add a marker in Sydney and move the camera
-        LatLng ucsd = new LatLng(32.881145, -117.2374);
-        mMap.addMarker(new MarkerOptions().position(ucsd).title("UCSD"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ucsd, 17));
+        // LatLng ucsd = new LatLng(32.881145, -117.2374);
+        // mMap.addMarker(new MarkerOptions().position(ucsd).title("UCSD"));
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ucsd, 17));
     }
     // ART --gathers the stars num data and can be pushed to the first intent
     public void fin(View view) {
         stars = (int)ratingBar.getRating();
-        Intent intent = new Intent(MapAdder.this, MapsActivity.class);
-        startActivity(intent);
+        Intent back = new Intent(this, MapsActivity.class);
+        Bundle a = new Bundle();
+        a.putSerializable("objects", position);
+        startActivity(back);
     }
     // ART -- listens to the rating bar and actives he confirnation screen
     public void addListenerOnRatingBar() {
