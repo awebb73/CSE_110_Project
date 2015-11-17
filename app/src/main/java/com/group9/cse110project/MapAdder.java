@@ -1,6 +1,7 @@
 package com.group9.cse110project;
 
 import android.content.Intent;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,16 +22,17 @@ import java.util.ArrayList;
 public class MapAdder extends FragmentActivity implements Serializable, OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private ArrayList<LatLng> position;
+    private ArrayList<LocationHolder> position;
     private RatingBar ratingBar;
     //private Button fin;
     private int stars;
+    private LatLng mark;
     // adding some comments as a test for git hub
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_adder);
-        position = new ArrayList<>();
+       // position = new ArrayList<>();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -54,8 +56,11 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         Intent intent = getIntent();
+        //LatLng current = intent.get("
         Bundle tmp = intent.getBundleExtra("adder");
-        position = (ArrayList<LatLng>)tmp.getSerializable("object");
+        position = tmp.getParcelableArrayList("object");
+        mark = intent.getParcelableExtra("current");
+        mMap.addMarker(new MarkerOptions().position(mark));
         // ART -- Add a marker in Sydney and move the camera
         // LatLng ucsd = new LatLng(32.881145, -117.2374);
         // mMap.addMarker(new MarkerOptions().position(ucsd).title("UCSD"));
@@ -63,12 +68,16 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
     }
     // ART --gathers the stars num data and can be pushed to the first intent
     public void fin(View view) {
-        stars = (int)ratingBar.getRating();
+        LocationHolder value = new LocationHolder("", stars, mark);
+        position.add(value);
         Intent back = new Intent(this, MapsActivity.class);
         Bundle a = new Bundle();
-        a.putSerializable("objects", position);
+        //a.putSerializable("objects", position);
+        a.putParcelableArrayList("objects", position);
+        back.putExtra("bundle", a);
         startActivity(back);
     }
+
     // ART -- listens to the rating bar and actives he confirnation screen
     public void addListenerOnRatingBar() {
         ratingBar = (RatingBar) findViewById(R.id.ratingBar);
@@ -93,4 +102,5 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
             }
         });
     }
+
 }

@@ -7,15 +7,12 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 //handle adding a pin on pin drop
 import com.google.android.gms.common.ConnectionResult;
@@ -41,11 +38,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public final static String EXTRA_MESSAGE = "com.group9.cse110project.MESSAGE";
     private GoogleMap mMap;
     private MarkerOptions mark;
-    ArrayList<LatLng> locationKeeper;
+    private ArrayList<LocationHolder> locationKeeper;
     //Location Coordinates
-    GoogleApiClient mGoogleApiClient;
-    double lastLat = 48.858207;
-    double lastLng = 2.294386;
+    private GoogleApiClient mGoogleApiClient;
+    private double lastLat = 48.858207;
+    private double lastLng = 2.294386;
+    private LocationManager locate;
 
 
     //MyLocation
@@ -59,7 +57,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        locationKeeper = new ArrayList<LatLng>();
+        locationKeeper = new ArrayList<LocationHolder>();
+        locate = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -67,6 +66,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Location Coordinates
         buildGoogleApiClient();
     }
+
 
     //set up the location handler
     protected synchronized void buildGoogleApiClient() {
@@ -77,12 +77,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
     }
 
-    private void setUpMap(ArrayList<LatLng> a){
+    private void setUpMap(ArrayList<LocationHolder> a){
         int position = 0;
         for(;position < a.size(); position++){
-            mMap.addMarker(new MarkerOptions().position(a.get(position)));
+            mMap.addMarker(new MarkerOptions().position(a.get(position).getLoc()));
         }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(position-1), 17));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(position-1).getLoc(), 17));
     }
 
     //adding in a dialog box new MarkerOptions().position(latlng).title("").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEn/RED/BLUE).snippet("NameOfBathroom, Rating, Review)));
@@ -101,10 +101,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         enableMyLocation();
-        mMap.setMyLocationEnabled(true);
         mMap.setOnMyLocationButtonClickListener(this);
-        LocationManager locate = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        System.out.println(locate);
+
+        //System.out.println(locate);
         Criteria crit = new Criteria();
         String provider = locate.getBestProvider(crit, true);
         mMap.setOnMapClickListener(this);
@@ -114,18 +113,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(getIntent().getExtras() != null) {
             if (getIntent().getExtras().containsKey("bundle")) {
                 Intent restore = getIntent();
-                Bundle bun = new Bundle();
-                bun = restore.getBundleExtra("bundle");
-                locationKeeper = (ArrayList<LatLng>) bun.getSerializable("objects");
+                Bundle bun = restore.getBundleExtra("bundle");
+                locationKeeper = bun.getParcelableArrayList("objects");
                 setUpMap(locationKeeper);
             }
         }
-        else {
-            LatLng latLng = new LatLng(32.8800604, -117.2361968);
+        /*else {
+            LatLng latLng = new LatLng(lastLat, lastLng);
             mark = new MarkerOptions().position(latLng).title("geisel");
             //mMap.addMarker(mark);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
+            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
         }
+        */
         // mMap.addMarker(new MarkerOptions().position(geisel).title("Geisel Library"));
        //  mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geisel, 17));
     }
@@ -201,10 +200,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
     }
 
-    //My Location
+    //My Locationge
     @Override
     public boolean onMyLocationButtonClick() {
         Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT).show();
@@ -225,17 +223,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float zoomLevel = 16;
         this.mMap.addMarker(new MarkerOptions().position(latLng).title("restroom"));
         this.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
-        locationKeeper.add(latLng);
+        LocationHolder pass = new LocationHolder("restroom", 3 , latLng);
+        locationKeeper.add(pass);
     }
     public void sendMessage(View view){
         Intent intent = new Intent(this, MapAdder.class);
-        //EditText tex = (EditText) findViewById(R.id.text);
-        //String message = tex.getText().toString();
-        //intent.putExtra(EXTRA_MESSAGE, message);
-
         Bundle bundle = new Bundle();
-        bundle.putSerializable("object", locationKeeper);
+        LatLng pass = new LatLng(lastLat, lastLng);
+        bundle.putParcelableArrayList("object", locationKeeper);
         intent.putExtra("adder", bundle);
+        intent.putExtra("current", pass);
         startActivity(intent);
     }
 
