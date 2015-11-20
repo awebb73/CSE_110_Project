@@ -116,6 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 else{
                     star = (int) Math.floor(a.get(z).getRating());
                 }
+                //adfsd
 
                 switch (star) {
                     case 1:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
