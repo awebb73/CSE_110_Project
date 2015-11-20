@@ -22,6 +22,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -43,6 +44,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private double lastLat = 48.858207;
     private double lastLng = 2.294386;
+    private LatLng warrenLecture= new LatLng(32.8807907, -117.2343316);
+    private LatLng physicsEBU = new LatLng(32.8811838, -117.2332927);
+    private LatLng ebu2 = new LatLng(32.8817438, -117.233403);
+    private double threshold = 200;
     private LocationManager locate;
 
 
@@ -65,6 +70,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
         //Location Coordinates
         buildGoogleApiClient();
+        onConnected(savedInstanceState);
     }
 
 
@@ -77,12 +83,57 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .build();
     }
 
-    private void setUpMap(ArrayList<LocationHolder> a){
+    private double distanceFormula(double x1, double x2, double y1, double y2){
+        return Math.sqrt(Math.pow((x1-x2), 2) + Math.pow((y1-y2),2));
+    }
+
+    //this has the geobox and the rating system setup.
+    private void setUpMap(ArrayList<LocationHolder> a) {
         int position = 0;
-        for(;position < a.size(); position++){
-            mMap.addMarker(new MarkerOptions().position(a.get(position).getLoc()));
+        int avg = 500000;
+        int star;
+        int locate = -1;
+        double value;
+        for (; position < a.size() - 1; position++) {
+            value = distanceFormula(a.get(position).getLoc().latitude, a.get(a.size() - 1).getLoc().latitude,
+                    a.get(position).getLoc().longitude, a.get(a.size() - 1).getLoc().longitude);
+            if (value < avg && value <= threshold) {
+                locate = position;
+            }
         }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(position-1).getLoc(), 17));
+
+        if (locate != -1) {
+            a.get(locate).incrementCount();
+            //divide by two because I avg on two counts.
+            a.get(locate).setRating((a.get(locate).getRating() + a.get(a.size() - 1).getRating()) / 2);
+            }
+
+            a.remove(a.size() - 1);
+            for(int z = 0; z < a.size(); z++) {
+                if(a.get(z).getRating() >= 2.75){
+                    star = 3;
+                }
+                else{
+                    star = (int) Math.floor(a.get(z).getRating());
+                }
+
+                switch (star) {
+                    case 1:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
+                            break;
+                    case 2:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).snippet(a.get(z).getSent()));
+                            break;
+                    case 3:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet(a.get(z).getSent()));
+                            break;
+                    default: mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
+                        break;
+                }
+            }
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(locate).getLoc(), 17));
     }
 
     //adding in a dialog box new MarkerOptions().position(latlng).title("").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEn/RED/BLUE).snippet("NameOfBathroom, Rating, Review)));
@@ -100,6 +151,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ebu2, 18));
         enableMyLocation();
         mMap.setOnMyLocationButtonClickListener(this);
 
@@ -118,15 +171,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 setUpMap(locationKeeper);
             }
         }
-        /*else {
-            LatLng latLng = new LatLng(lastLat, lastLng);
-            mark = new MarkerOptions().position(latLng).title("geisel");
-            //mMap.addMarker(mark);
-            //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
-        }
-        */
-        // mMap.addMarker(new MarkerOptions().position(geisel).title("Geisel Library"));
-       //  mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(geisel, 17));
+            else {
+                locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warrenLecture));
+                locationKeeper.add(new LocationHolder("Physics Building", 3, physicsEBU));
+                locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2));
+                mMap.addMarker(new MarkerOptions().position(ebu2)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("CSE Building"));
+                mMap.addMarker(new MarkerOptions().position(physicsEBU)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Physics Building"));
+                mMap.addMarker(new MarkerOptions().position(warrenLecture)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Warren Lecture Hall"));
+            }
     }
 
     //MyLocation
@@ -196,10 +251,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionSuspended(int i) {
+        Toast.makeText(this, "Connections is suspended", Toast.LENGTH_SHORT);
+
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Toast.makeText(this, "Sorry gps connection failed", Toast.LENGTH_SHORT);
     }
 
     //My Locationge
@@ -229,7 +287,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void sendMessage(View view){
         Intent intent = new Intent(this, MapAdder.class);
         Bundle bundle = new Bundle();
-        LatLng pass = new LatLng(lastLat, lastLng);
+        LatLng pass = new LatLng(32.8907907, -117.3343316);
         bundle.putParcelableArrayList("object", locationKeeper);
         intent.putExtra("adder", bundle);
         intent.putExtra("current", pass);

@@ -25,14 +25,13 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
     private ArrayList<LocationHolder> position;
     private RatingBar ratingBar;
     //private Button fin;
-    private int stars;
+    private double stars;
     private LatLng mark;
     // adding some comments as a test for git hub
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_adder);
-       // position = new ArrayList<>();
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -61,6 +60,7 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
         position = tmp.getParcelableArrayList("object");
         mark = intent.getParcelableExtra("current");
         mMap.addMarker(new MarkerOptions().position(mark));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mark, 17));
         // ART -- Add a marker in Sydney and move the camera
         // LatLng ucsd = new LatLng(32.881145, -117.2374);
         // mMap.addMarker(new MarkerOptions().position(ucsd).title("UCSD"));
