@@ -12,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 //handle adding a pin on pin drop
@@ -36,7 +37,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
             GoogleMap.OnMyLocationButtonClickListener{
 
-    public final static String EXTRA_MESSAGE = "com.group9.cse110project.MESSAGE";
+
     private GoogleMap mMap;
     private MarkerOptions mark;
     private ArrayList<LocationHolder> locationKeeper;
@@ -46,9 +47,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private double lastLng = 2.294386;
     private LatLng warrenLecture= new LatLng(32.8807907, -117.2343316);
     private LatLng physicsEBU = new LatLng(32.8811838, -117.2332927);
-    private LatLng ebu2 = new LatLng(32.8817438, -117.233403);
-    private double threshold = 200;
+    private LatLng ebu2 = new LatLng(32.8814126, -117.2339695);
+    private double threshold = 0.000656;
     private LocationManager locate;
+    //comment to delete later........
 
 
     //MyLocation
@@ -84,17 +86,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private double distanceFormula(double x1, double x2, double y1, double y2){
-        return Math.sqrt(Math.pow((x1-x2), 2) + Math.pow((y1-y2),2));
+        return Math.sqrt(Math.abs(Math.pow((x1-x2), 2)) + Math.abs(Math.pow((y1-y2),2)));
     }
 
     //this has the geobox and the rating system setup.
     private void setUpMap(ArrayList<LocationHolder> a) {
-        int position = 0;
         int avg = 500000;
         int star;
-        int locate = -1;
+        int locate = -3;
         double value;
-        for (; position < a.size() - 1; position++) {
+        for (int position = 0; position < a.size() - 1; position++) {
             value = distanceFormula(a.get(position).getLoc().latitude, a.get(a.size() - 1).getLoc().latitude,
                     a.get(position).getLoc().longitude, a.get(a.size() - 1).getLoc().longitude);
             if (value < avg && value <= threshold) {
@@ -102,14 +103,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
-        if (locate != -1) {
+        if (locate !=-3) {
             a.get(locate).incrementCount();
             //divide by two because I avg on two counts.
             a.get(locate).setRating((a.get(locate).getRating() + a.get(a.size() - 1).getRating()) / 2);
             }
 
             a.remove(a.size() - 1);
-            for(int z = 0; z < a.size(); z++) {
+            int z;
+            for(z = 0; z < a.size(); z++) {
                 if(a.get(z).getRating() >= 2.75){
                     star = 3;
                 }
@@ -134,7 +136,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(locate).getLoc(), 17));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(z-1).getLoc(), 17));
     }
 
     //adding in a dialog box new MarkerOptions().position(latlng).title("").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEn/RED/BLUE).snippet("NameOfBathroom, Rating, Review)));
@@ -288,7 +290,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void sendMessage(View view){
         Intent intent = new Intent(this, MapAdder.class);
         Bundle bundle = new Bundle();
-        LatLng pass = new LatLng(32.8907907, -117.3343316);
+        LatLng pass = new LatLng(32.8814126, -117.2339695);
         bundle.putParcelableArrayList("object", locationKeeper);
         intent.putExtra("adder", bundle);
         intent.putExtra("current", pass);

@@ -8,18 +8,21 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RatingBar;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class MapAdder extends FragmentActivity implements Serializable, OnMapReadyCallback {
+public class MapAdder extends FragmentActivity implements Serializable, OnMapReadyCallback,
+        GoogleMap.OnMarkerDragListener{
 
     private GoogleMap mMap;
     private ArrayList<LocationHolder> position;
@@ -27,6 +30,7 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
     //private Button fin;
     private double stars;
     private LatLng mark;
+    private Marker pin;
     // adding some comments as a test for git hub
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,18 +58,36 @@ public class MapAdder extends FragmentActivity implements Serializable, OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnMarkerDragListener(this);
         Intent intent = getIntent();
         //LatLng current = intent.get("
         Bundle tmp = intent.getBundleExtra("adder");
         position = tmp.getParcelableArrayList("object");
         mark = intent.getParcelableExtra("current");
-        mMap.addMarker(new MarkerOptions().position(mark));
+        mMap.addMarker(new MarkerOptions().position(mark).draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mark, 17));
         // ART -- Add a marker in Sydney and move the camera
         // LatLng ucsd = new LatLng(32.881145, -117.2374);
         // mMap.addMarker(new MarkerOptions().position(ucsd).title("UCSD"));
         // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ucsd, 17));
     }
+
+    @Override
+    public void onMarkerDrag(Marker arg0){
+        arg0.setDraggable(true);
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker){
+        mark = marker.getPosition();
+        double lat = mark.latitude;
+        double longi = mark.longitude;
+        mark = marker.getPosition();
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker){}
+
     // ART --gathers the stars num data and can be pushed to the first intent
     public void fin(View view) {
         LocationHolder value = new LocationHolder("", stars, mark);
