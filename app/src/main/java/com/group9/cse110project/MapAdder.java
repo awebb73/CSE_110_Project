@@ -37,7 +37,7 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         GoogleMap.OnMarkerDragListener, LocationListener {
 
     private GoogleMap mMap;
-    private ArrayList<LocationHolder> locationKeeper;
+    private static ArrayList<LocationHolder> locationKeeper = new ArrayList<>();
     private RatingBar ratingBar;
     //private Button fin;
     private static double lastLat =0;
@@ -72,13 +72,27 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
             finish();
         }
         setContentView(R.layout.activity_map_adder);
-
+        /*
         // getting the array list from the original intent
-        Intent i = getIntent();
-        // Log.d("awebb", "2 locationKeeper.size() value: " + locationKeeper.size());
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+        Log.d("awebb", "2 bundle.size() value: " + bundle.size());
+        ArrayList<LocationHolder> keeper = (ArrayList<LocationHolder>) bundle.getParcelableArrayList("array_list");
+        */
 
-        locationKeeper = i.getParcelableArrayListExtra("array_list");
-        // Log.d("awebb", "locationKeeper.size() value: " + locationKeeper.size());
+        Bundle bundle = getIntent().getExtras();
+        ArrayList<LocationHolder> bList = bundle.getParcelableArrayList("array_list");
+
+        Log.d("awebb", "3 locationKeeper.size() value: " + bList.size());
+        for (int i =0; i< bList.size();i++)
+        {
+            LocationHolder x = bList.get(i);
+            Log.d("awebb", "x.getSent value: " + x.getSent());
+        }
+
+
+
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -88,6 +102,14 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         // initializing the map
         mMap = mapFragment.getMap();
 
+/*
+        Log.d("awebb", "3 locationKeeper.size() value: " + keeper.size());
+        for (int i =0; i<keeper.size();i++)
+        {
+            LocationHolder x = keeper.get(i);
+            Log.d("awebb", "x.getSent value: " + x.getSent());
+        }
+*/
         Button fin = (Button) findViewById(R.id.button);
         fin.setEnabled(false);
         addListenerOnRatingBar();
@@ -168,10 +190,19 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         // pushing the object onto the vector list
         locationKeeper.add(hold);
 
-        Intent i = new Intent(MapAdder.this, MapsActivity.class);
-        i.putParcelableArrayListExtra("array_list", locationKeeper);
+        Intent intent = new Intent(MapAdder.this, MapsActivity.class);
+        intent.putParcelableArrayListExtra("array_list", locationKeeper);
         Log.d("awebb", "4 locationKeeper.size() value: " + locationKeeper.size());
-        startActivity(i);
+
+        for (int i =0; i< locationKeeper.size();i++)
+        {
+            LocationHolder x = locationKeeper.get(i);
+            Log.d("awebb", "x.getSent value: " + x.getSent());
+        }
+
+
+
+        startActivity(intent);
 		/* bundle implementation
         Intent back = new Intent(this, MapsActivity.class);
         Bundle a = new Bundle();

@@ -85,12 +85,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             finish();
         }
         setContentView(R.layout.activity_maps);
-
+        // initializes the new arrayList
         locationKeeper = new ArrayList<LocationHolder>();
+
         // this is not needed i dont think
         // will comment out and if things all go bad
         // i will put it back in
         // locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -105,41 +107,76 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // starting up the map
         onMapReady(mMap);
 
-        // implementing the button
-        // and makign it clickable
-        Button send = (Button) findViewById(R.id.button);
-        send.setEnabled(true);
-        /*
-        // need an if block that only checks after the first intenet has passed
-        if(locationKeeper.size() > 0)
+        // getting the intent
+        Intent intent = getIntent();
+
+        if (intent.getExtras() == null)
         {
-            // getting the intent passed from the second activity
-            Intent i = getIntent(); //.getExtra("array_list")
+            // do the first pass stuff here
 
-            locationKeeper = i.getParcelableArrayListExtra("array_list");
-            // Log.d("awebb", "Activity 1  value: " + locationKeeper.size());
+            // can use this to recenter the marker
+            // this will also reset the map on the first activity
+            if (location != null)
+            {
+                onLocationChanged(location);
+            }
+            //Location Coordinates
+            buildGoogleApiClient();
+            onConnected(savedInstanceState);
 
+            // implementing the button
+            // and making it clickable
+            Button send = (Button) findViewById(R.id.button);
+            send.setEnabled(true);
+
+            // See https://g.co/AppIndexing/AndroidStudio for more information.
+            client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        }
+        else
+        {
+            // every other time we do this
+            Bundle bundle = intent.getExtras();
+            ArrayList<LocationHolder> aList = bundle.getParcelableArrayList("array_list");
+
+            Log.d("awebb", "5 locationKeeper.size() value: " + aList.size());
+            for (int i =0; i< aList.size();i++)
+            {
+                LocationHolder x = aList.get(i);
+                Log.d("awebb", "x.getSent value: " + x.getSent());
+            }
+
+
+            // can use this to recenter the marker
+            // this will also reset the map on the first activity
+            if (location != null)
+            {
+                onLocationChanged(location);
+            }
+            //Location Coordinates
+            buildGoogleApiClient();
+            onConnected(savedInstanceState);
+
+            // implementing the button
+            // and making it clickable
+            Button send = (Button) findViewById(R.id.button);
+            send.setEnabled(true);
+
+            // See https://g.co/AppIndexing/AndroidStudio for more information.
+            client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        }
+
+            /*
             // need to repopulate the map after we recieve the
             // info from the second activity
             setUpMap(locationKeeper);
-        }
-        */
 
-        // can use this to recenter the marker
-        // this will also reset the map on the first activity
-        // need a conditional that only allows during the first Activity and
-        // not received any information from the second activity
-        if (location != null)
-        {
-            onLocationChanged(location);
-        }
+            // implementing the button
+            // and making it clickable
+            Button send = (Button) findViewById(R.id.button);
+            send.setEnabled(true);
+            */
 
-        //Location Coordinates
-        buildGoogleApiClient();
-        onConnected(savedInstanceState);
-
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
 
@@ -147,8 +184,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)                                                   //Location Coordinates
-                .addOnConnectionFailedListener(this)                                            //Location Coordinates
+                .addConnectionCallbacks(this)                                //Location Coordinates
+                .addOnConnectionFailedListener(this)                         //Location Coordinates
                 .build();
     }
 
@@ -173,7 +210,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (locationManager !=-3) {
-            a.get(locationManager).incrementCount();
+            // a.get(locationManager).incrementCount();
             // divide by two because I avg on two counts.
             a.get(locationManager).setRating((a.get(locationManager).getRating() + a.get(a.size() - 1).getRating()) / 2);
         }
@@ -271,6 +308,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.setOnMapClickListener(this);
         // NULL check to see if intent is null
+        // if intent is null we populate the map w/ warren restroom
+        // if intent is not null populate with new pin
         // LatLng geisel = new LatLng(32.881145, -117.237394);
         if(getIntent().getExtras() != null) {
             if (getIntent().getExtras().containsKey("bundle")) {
@@ -360,20 +399,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // going to decouple this from the UI so we can
     // use the click for control flow
     public void send(View view){
-        Intent intent = new Intent(MapsActivity.this, MapAdder.class);
-        Log.d("awebb", "0 locationKeeper.size() value: " + locationKeeper.size());
-        intent.putParcelableArrayListExtra("array_list", locationKeeper);
-        Log.d("awebb", "1 locationKeeper.size() value: " + locationKeeper.size());
-        startActivity(intent);
+        ArrayList<LocationHolder> aList = new ArrayList();
+        Intent intent = new Intent(getApplicationContext(), MapAdder.class);
+        intent.putExtra("array_list", aList);
 
-		/* with bundle implementation
+
+        Log.d("awebb", "1 locationKeeper.size() value: " + aList.size());
+        for (int i =0; i<aList.size();i++)
+        {
+            LocationHolder x = aList.get(i);
+            Log.d("awebb", "x.getSent value: " + x.getSent());
+            // Log.d("awebb", "x.getCount value: " + x.getCount());
+
+        }
+
+        /*
+		//with bundle implementation
         Bundle bundle = new Bundle();
-        LatLng pass = new LatLng(32.8814126, -117.2339695);
-        bundle.putParcelableArrayList("object", locationKeeper);
+        // LatLng pass = new LatLng(32.8814126, -117.2339695);
+        bundle.putParcelableArrayList("array_list", locationKeeper);
         intent.putExtra("adder", bundle);
-        intent.putExtra("current", pass);
+
+        Log.d("awebb", "0 bundle.size() value: " + bundle.size());
+        Log.d("awebb", "1 locationKeeper.size() value: " + locationKeeper.size());
+
+        for (int i =0; i<locationKeeper.size();i++)
+        {
+            LocationHolder x = locationKeeper.get(i);
+            Log.d("awebb", "x.getSent value: " + x.getSent());
+            // Log.d("awebb", "x.getCount value: " + x.getCount());
+
+        }
+        */
+        // intent.putExtra("current", pass);
+
         startActivity(intent);
-		*/
     }
 
     @Override

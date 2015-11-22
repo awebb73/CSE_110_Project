@@ -3,9 +3,6 @@ package com.group9.cse110project;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.google.android.gms.maps.model.LatLng;
-
-
 /**
  * Created by art on 11/16/15.
  */
@@ -13,7 +10,7 @@ public class LocationHolder implements Parcelable {
     private String sent;
     private float rating;
     // private LatLng loc;
-    private int count;
+    // private int count;
     private double lat, lng;
 
 
@@ -30,12 +27,15 @@ public class LocationHolder implements Parcelable {
         this.rating = rating;
         this.lat = lat;
         this.lng = lng;
-        this.count = 1;
+        // this.count = 1;
     }
 
     public LocationHolder(Parcel source)
     {
-        this.rating = source.readInt();
+        sent = source.readString();
+        rating = source.readInt();
+        lat = source.readDouble();
+        lng = source.readDouble();
     }
 
     // getter for the string
@@ -65,7 +65,7 @@ public class LocationHolder implements Parcelable {
         this.loc = loc;
     }
     */
-
+    /*
     // incrementer
     public void incrementCount(){
         this.count++;
@@ -74,7 +74,7 @@ public class LocationHolder implements Parcelable {
     public int getCount(){
         return this.count;
     }
-
+    */
 
     //getter for the lat
     public double getLat()
@@ -102,11 +102,11 @@ public class LocationHolder implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        // dest.writeString(sent);
-        dest.writeFloat(rating);
+        dest.writeString(sent);
+        dest.writeFloat(this.rating);
         dest.writeDouble(this.lat);
         dest.writeDouble(this.lng);
-        dest.writeInt(count);
+        // dest.writeInt(this.count);
     }
 
     private void readFromParcel(Parcel source){
@@ -115,7 +115,7 @@ public class LocationHolder implements Parcelable {
         this.lat = source.readDouble();
         this.lng = source.readDouble();
         // this.loc = source.readParcelable(LatLng.class.getClassLoader());
-        this.count = source.readInt();
+        // this.count = source.readInt();
 
     }
 
