@@ -49,7 +49,7 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
     private static String bestProvider;
     private static Criteria criteria;
     private static Location location;
-    private static LocationHolder holder = new LocationHolder(stars,lastLat,lastLng);
+    private static LocationHolder holder = new LocationHolder("restroom", stars,lastLat,lastLng);
 
     //MyLocation
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -75,10 +75,10 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
 
         // getting the array list from the original intent
         Intent i = getIntent();
-        Log.d("awebb", "2 locationKeeper.size() value: " + locationKeeper.size());
+        // Log.d("awebb", "2 locationKeeper.size() value: " + locationKeeper.size());
 
         locationKeeper = i.getParcelableArrayListExtra("array_list");
-        Log.d("awebb", "locationKeeper.size() value: " + locationKeeper.size());
+        // Log.d("awebb", "locationKeeper.size() value: " + locationKeeper.size());
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -164,7 +164,7 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         double lng = location.getLongitude();
 
         // creating the location holder objects
-        LocationHolder hold = new LocationHolder(stars, lat, lng);
+        LocationHolder hold = new LocationHolder("Restroom", stars, lat, lng);
         // pushing the object onto the vector list
         locationKeeper.add(hold);
 

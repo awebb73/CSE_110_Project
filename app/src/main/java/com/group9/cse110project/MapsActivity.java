@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -108,22 +109,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // and makign it clickable
         Button send = (Button) findViewById(R.id.button);
         send.setEnabled(true);
+        /*
+        // need an if block that only checks after the first intenet has passed
+        if(locationKeeper.size() > 0)
+        {
+            // getting the intent passed from the second activity
+            Intent i = getIntent(); //.getExtra("array_list")
 
-        // getting the intent passed from the second activity
-        Intent i = getIntent(); //.getExtra("array_list")
+            locationKeeper = i.getParcelableArrayListExtra("array_list");
+            // Log.d("awebb", "Activity 1  value: " + locationKeeper.size());
 
-        locationKeeper = i.getParcelableArrayListExtra("array_list");
-        Log.d("awebb", "Activity 1  value: " + locationKeeper.size());
+            // need to repopulate the map after we recieve the
+            // info from the second activity
+            setUpMap(locationKeeper);
+        }
+        */
 
-        // need to repopulate the map after we recieve the
-        // info from the second activity
-        setUpMap(locationKeeper);
-
-
-        // can use thios to recenter the marker
+        // can use this to recenter the marker
         // this will also reset the map on the first activity
         // need a conditional that only allows during the first Activity and
-        // not recieved any information from the second activity
+        // not received any information from the second activity
         if (location != null)
         {
             onLocationChanged(location);
@@ -182,25 +187,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             else{
                 star = (int) Math.floor(a.get(z).getRating());
             }
-            //adfsd
-
+            //variable to unpack the location data
+            double lat = a.get(z).getLat();
+            double lng = a.get(z).getLng();
+            LatLng loc = new LatLng(lat, lng);
             switch (star) {
-                case 1:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                case 1:mMap.addMarker(new MarkerOptions().position(loc)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
                     break;
-                case 2:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                case 2:mMap.addMarker(new MarkerOptions().position(loc)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).snippet(a.get(z).getSent()));
                     break;
-                case 3:mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                case 3:mMap.addMarker(new MarkerOptions().position(loc)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet(a.get(z).getSent()));
                     break;
-                default: mMap.addMarker(new MarkerOptions().position(a.get(z).getLoc())
+                default: mMap.addMarker(new MarkerOptions().position(loc)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
                     break;
             }
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(a.get(z-1).getLoc(), 17));
+        double lat = a.get(z-1).getLat();
+        double lng = a.get(z-1).getLng();
+        LatLng loc = new LatLng(lat, lng);
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 17));
     }
 
     //adding in a dialog box new MarkerOptions().position(latlng).title("").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEn/RED/BLUE).snippet("NameOfBathroom, Rating, Review)));
@@ -270,9 +281,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
         else {
-            locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warrenLecture));
-            locationKeeper.add(new LocationHolder("Physics Building", 3, physicsEBU));
-            locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2));
+            //random variables unpacking the variables
+            double warLat = warrenLecture.latitude;
+            double warLng = warrenLecture.longitude;
+            double ebuLat = physicsEBU.latitude;
+            double ebuLng = physicsEBU.longitude;
+            double ebu2Lat = ebu2.latitude;
+            double ebu2Lng = ebu2.longitude;
+
+            locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warLat, warLng));
+            locationKeeper.add(new LocationHolder("Physics Building", 3, ebuLat, ebuLng));
+            locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2Lat, ebu2Lng));
             mMap.addMarker(new MarkerOptions().position(ebu2)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("CSE Building"));
             mMap.addMarker(new MarkerOptions().position(physicsEBU)
@@ -332,10 +351,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
-        LocationHolder holder = new LocationHolder(0,latitude,longitude);
+        LocationHolder holder = new LocationHolder("restroom" ,0 ,latitude ,longitude);
 
         // LocationHolder pass = new LocationHolder("restroom", 3 , latLng);
-        locationKeeper.add(pass);
+        locationKeeper.add(holder);
     }
     // used to pass the intents between screens
     // going to decouple this from the UI so we can
