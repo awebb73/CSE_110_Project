@@ -89,6 +89,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // initializes the new arrayList
         locationKeeper = new ArrayList<LocationHolder>();
 
+
+
         // this is for parse
         // Enable Local Datastore.
         // Parse.enableLocalDatastore(this);
@@ -199,10 +201,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // this has the geobox and the rating system setup.
     private ArrayList setUpMap(ArrayList<LocationHolder> a) {
         this.a = a;
-        int avg = 500000;
+        double avg = 500000;
         int star;
         int locationManager = -3;
         double value;
+        mMap.setOnMarkerClickListener(this);
 
         // iterates through the ArrayList
         // compares the current item to the last item
@@ -219,6 +222,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // set a variable to the current position
             // in the array
             if (value < avg && value <= threshold) {
+                avg = value;
                 locationManager = position;
                 Log.d("awebb", "locationManager value: " + locationManager);
             }
@@ -226,11 +230,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // if the locationManager was changed
         // get the element in the ArrayList and
         // average it rating with the last element in the list
-        // why the last element everytime? is that special
+        // why the last element every time? is that special
         if (locationManager !=-3) {
-            // a.get(locationManager).incrementCount();
-            // divide by two because I avg on two counts.
-            a.get(locationManager).setRating((a.get(locationManager).getRating() + a.get(a.size() - 1).getRating()) / 2);
+            LocationHolder newAdd = a.get(locationManager);
+            // take current average
+            float curRat = newAdd.getRating();
+            // multiply by count
+            int curCount = newAdd.getCount();
+            float multRat = curRat * curCount;
+            // add new rating
+            multRat = multRat + a.get(a.size()-1).getRating();
+            // increment count
+            newAdd.incrementCount();
+            // divide by count
+            newAdd.setRating(multRat/newAdd.getCount());
+            // set new info into array
+            a.get(locationManager).setRating(newAdd.getRating());
+            a.get(locationManager).incrementCount();
         }
         Log.d("awebb", "a.size: " + a.size());
         // removes the last element from the arrayList
@@ -255,16 +271,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng loc = new LatLng(lat, lng);
             switch (star) {
                 case 1:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
                     break;
                 case 2:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).snippet(a.get(z).getSent()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
                     break;
                 case 3:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet(a.get(z).getSent()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
                     break;
                 default: mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).snippet(a.get(z).getSent()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
                     break;
             }
         }
@@ -296,6 +312,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        /*
+        if(location != null) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            LatLng latLng = new LatLng(latitude, longitude);
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+        }
+        else{
+            Toast.makeText(this, "location null" + location, Toast.LENGTH_LONG);
+        }
+        */
+
         UiSettings mMapSettings;
         Criteria criteria;
         mMap = googleMap;
@@ -303,10 +333,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMapSettings = mMap.getUiSettings();
         // turns off the snap button
         mMapSettings.setMyLocationButtonEnabled(false);
-        // responds to a click on the location button
-        mMap.setOnMyLocationButtonClickListener(this);
+        // sets the marker click listener
+        mMap.setOnMarkerClickListener(this);
 
-
+        // set the listener to the map
+        // mMap.setOnMyLocationButtonClickListener(this);
         // makes the map clickable
         // mMap.setOnMapClickListener(this);
         // Some more useful settings before i forget
@@ -337,31 +368,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
 
 
-        /*
-        Log.d("awebb", "first time map set up " );
-        //random variables unpacking the variables
-        double warLat = warrenLecture.latitude;
-        double warLng = warrenLecture.longitude;
-        double ebuLat = physicsEBU.latitude;
-        double ebuLng = physicsEBU.longitude;
-        double ebu2Lat = ebu2.latitude;
-        double ebu2Lng = ebu2.longitude;
-
-        locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warLat, warLng));
-        locationKeeper.add(new LocationHolder("Physics Building", 3, ebuLat, ebuLng));
-        locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2Lat, ebu2Lng));
-        mMap.addMarker(new MarkerOptions().position(ebu2)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("CSE Building"));
-        mMap.addMarker(new MarkerOptions().position(physicsEBU)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Physics Building"));
-        mMap.addMarker(new MarkerOptions().position(warrenLecture)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Warren Lecture Hall"));
-
-        */
-
-
-
-
         // doing this check in the onCreate
         // only calling this function the first time we use the map so no need for this check
         // removed to not
@@ -373,18 +379,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // getting the intent
         Intent intent = getIntent();
-        if(intent.getExtras() != null) {
-            Log.d("awebb", "non null intent onMapReady " );
+        if(intent.getExtras() == null) {
 
-            if (getIntent().getExtras().containsKey("bundle")) {
-                Intent restore = getIntent();
-                Bundle bun = restore.getBundleExtra("bundle");
-                locationKeeper = bun.getParcelableArrayList("objects");
-                setUpMap(locationKeeper);
-            }
-        }
-        else
-        {
             Log.d("awebb", "first time onMapReady " );
             //random variables unpacking the variables
             double warLat = warrenLecture.latitude;
@@ -397,14 +393,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warLat, warLng));
             locationKeeper.add(new LocationHolder("Physics Building", 3, ebuLat, ebuLng));
             locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2Lat, ebu2Lng));
-            mMap.addMarker(new MarkerOptions().position(ebu2)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("CSE Building"));
-            mMap.addMarker(new MarkerOptions().position(physicsEBU)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Physics Building"));
-            mMap.addMarker(new MarkerOptions().position(warrenLecture)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Warren Lecture Hall"));
-        }
 
+            mMap.addMarker(new MarkerOptions().position(ebu2)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title("CSE Building").snippet("")); //+ locationKeeper.get(2).getRating()));
+            mMap.addMarker(new MarkerOptions().position(physicsEBU)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title("Physics Building").snippet("Physics Building"));
+            mMap.addMarker(new MarkerOptions().position(warrenLecture)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title("Warren Lecture Hall").snippet("Warren Lecture Hall"));
+
+        }
     }
 
     //Location Coordinates
