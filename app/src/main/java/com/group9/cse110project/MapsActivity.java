@@ -320,7 +320,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         // sets the map at a fixed location i think
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ebu2, 18));
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ebu2, 18));
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         criteria = new Criteria();
@@ -328,14 +328,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         enableMyLocation();
 
-		/*get current location
+		// get current location
 		double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         LatLng latLng = new LatLng(latitude, longitude);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
-		*/
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+
 
         /*
         Log.d("awebb", "first time map set up " );

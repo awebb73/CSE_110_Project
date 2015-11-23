@@ -131,6 +131,7 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         mMap = googleMap;
         mMap.setOnMarkerDragListener(this);
 
+
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         criteria = new Criteria();
         bestProvider = locationManager.getBestProvider(criteria, true);
@@ -141,7 +142,6 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         LatLng latLng = new LatLng(latitude, longitude);
-
 
         mMap.addMarker(new MarkerOptions().position(latLng).draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17));
@@ -172,12 +172,14 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
     public void onMarkerDragEnd(Marker marker){
         mark = marker.getPosition();
         double lat = mark.latitude;
-        double longi = mark.longitude;
+        double lng = mark.longitude;
         mark = marker.getPosition();
     }
 
     @Override
-    public void onMarkerDragStart(Marker marker){}
+    public void onMarkerDragStart(Marker marker){
+
+    }
 
     // ART --gathers the stars num data and can be pushed to the first intent
     public void fin(View view)
@@ -321,7 +323,4 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
             mPermissionDenied = true;
         }
     }
-
-
-
 }
