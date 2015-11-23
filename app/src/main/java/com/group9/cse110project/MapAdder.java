@@ -81,15 +81,16 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
         */
 
         Bundle bundle = getIntent().getExtras();
-        ArrayList<LocationHolder> bList = bundle.getParcelableArrayList("array_list");
+        locationKeeper = bundle.getParcelableArrayList("array_list");
 
-        Log.d("awebb", "3 locationKeeper.size() value: " + bList.size());
-        for (int i =0; i< bList.size();i++)
+        Log.d("awebb", "2nd act get size " + locationKeeper.size());
+        /*
+        for (int i =0; i< locationKeeper.size();i++)
         {
-            LocationHolder x = bList.get(i);
+            LocationHolder x = locationKeeper.get(i);
             Log.d("awebb", "x.getSent value: " + x.getSent());
         }
-
+        */
 
 
 
@@ -192,14 +193,14 @@ public class MapAdder extends AppCompatActivity implements Serializable, OnMapRe
 
         Intent intent = new Intent(MapAdder.this, MapsActivity.class);
         intent.putParcelableArrayListExtra("array_list", locationKeeper);
-        Log.d("awebb", "4 locationKeeper.size() value: " + locationKeeper.size());
-
+        Log.d("awebb", "2nd act send size: " + locationKeeper.size());
+        /*
         for (int i =0; i< locationKeeper.size();i++)
         {
             LocationHolder x = locationKeeper.get(i);
             Log.d("awebb", "x.getSent value: " + x.getSent());
         }
-
+        */
 
 
         startActivity(intent);

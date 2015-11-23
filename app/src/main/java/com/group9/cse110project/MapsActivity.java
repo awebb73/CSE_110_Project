@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.UiSettings;
+import com.parse.Parse;
 
 import java.util.ArrayList;
 
@@ -49,7 +50,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private MarkerOptions mark;
-    private ArrayList<LocationHolder> locationKeeper;
+    private ArrayList locationKeeper;
     //Location Coordinates
     private GoogleApiClient mGoogleApiClient;
     private double lastLat = 48.858207;
@@ -62,7 +63,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static Location location;
     // private LocationHolder holder;
     private static String bestProvider;
-    //comment to delete later........
 
 
     //MyLocation
@@ -76,6 +76,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+    private ArrayList<LocationHolder> a;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +88,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
         // initializes the new arrayList
         locationKeeper = new ArrayList<LocationHolder>();
+
+        // this is for parse
+        // Enable Local Datastore.
+        // Parse.enableLocalDatastore(this);
+        // Parse.initialize(this, "U0lb0bfnvCNfUa39ytZHVwPOL79LdLHKHIhPPitI", "0EO6aOF1ne1V8UZxotkIkwTA9HSOWOCHZiXM5LQy");
 
         // this is not needed i dont think
         // will comment out and if things all go bad
@@ -104,15 +110,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // puts the blue dot on the screen
         mMap.setMyLocationEnabled(true);
 
-        // starting up the map
-        onMapReady(mMap);
-
         // getting the intent
         Intent intent = getIntent();
-
         if (intent.getExtras() == null)
         {
             // do the first pass stuff here
+            // starting up the map
+            // populates the array with the
+            // the static locations
+            // this appears to get called everytime
+            // possibly by magic
+            // onMapReady(mMap);
 
             // can use this to recenter the marker
             // this will also reset the map on the first activity
@@ -133,19 +141,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
         }
+        // every other time we do this
         else
         {
-            // every other time we do this
-            Bundle bundle = intent.getExtras();
-            ArrayList<LocationHolder> aList = bundle.getParcelableArrayList("array_list");
 
-            Log.d("awebb", "5 locationKeeper.size() value: " + aList.size());
-            for (int i =0; i< aList.size();i++)
+            Bundle bundle = intent.getExtras();
+            locationKeeper = bundle.getParcelableArrayList("array_list");
+
+            Log.d("awebb", "1st act get size: " + locationKeeper.size());
+
+            for (int i =0; i< locationKeeper.size();i++)
             {
-                LocationHolder x = aList.get(i);
+                LocationHolder x = (LocationHolder) locationKeeper.get(i);
                 Log.d("awebb", "x.getSent value: " + x.getSent());
             }
 
+            // set up the map
+            locationKeeper = setUpMap(locationKeeper);
 
             // can use this to recenter the marker
             // this will also reset the map on the first activity
@@ -165,17 +177,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // See https://g.co/AppIndexing/AndroidStudio for more information.
             client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         }
-
-            /*
-            // need to repopulate the map after we recieve the
-            // info from the second activity
-            setUpMap(locationKeeper);
-
-            // implementing the button
-            // and making it clickable
-            Button send = (Button) findViewById(R.id.button);
-            send.setEnabled(true);
-            */
 
     }
 
@@ -188,7 +189,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnConnectionFailedListener(this)                         //Location Coordinates
                 .build();
     }
-
+    // a formula to compute the distance between 2 locations
     private double distanceFormula(double x1, double x2, double y1, double y2){
         return Math.sqrt(Math.abs(Math.pow((x1-x2), 2)) + Math.abs(Math.pow((y1-y2),2)));
     }
@@ -196,26 +197,48 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // when we receive the information from the second activity
     // will catch the intent here and unpack it
     // this has the geobox and the rating system setup.
-    private void setUpMap(ArrayList<LocationHolder> a) {
+    private ArrayList setUpMap(ArrayList<LocationHolder> a) {
+        this.a = a;
         int avg = 500000;
         int star;
         int locationManager = -3;
         double value;
+
+        // iterates through the ArrayList
+        // compares the current item to the last item
+        // this skips the first add we should be checking all the time
+        // i dont think i am loading the ArrayList correctly
+        // it should always have 3 or 4 elements in it
         for (int position = 0; position < a.size() - 1; position++) {
             value = distanceFormula(a.get(position).getLat(), a.get(a.size() - 1).getLat(),
                     a.get(position).getLng(), a.get(a.size() - 1).getLng());
+
+            // Log.d("awebb", "value: " + value);
+
+            // if the distance < 50000 and <= 0.000656
+            // set a variable to the current position
+            // in the array
             if (value < avg && value <= threshold) {
                 locationManager = position;
+                Log.d("awebb", "locationManager value: " + locationManager);
             }
         }
-
+        // if the locationManager was changed
+        // get the element in the ArrayList and
+        // average it rating with the last element in the list
+        // why the last element everytime? is that special
         if (locationManager !=-3) {
             // a.get(locationManager).incrementCount();
             // divide by two because I avg on two counts.
             a.get(locationManager).setRating((a.get(locationManager).getRating() + a.get(a.size() - 1).getRating()) / 2);
         }
-
+        Log.d("awebb", "a.size: " + a.size());
+        // removes the last element from the arrayList
         a.remove(a.size() - 1);
+        Log.d("awebb", "a.size after remove: " + a.size());
+        // iterate through the remaining list and
+        // assign colors to the markers based on
+        // the average of the rating
         int z;
         for(z = 0; z < a.size(); z++) {
             if(a.get(z).getRating() >= 2.75){
@@ -226,7 +249,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             //variable to unpack the location data
             double lat = a.get(z).getLat();
+            // Log.d("awebb", "lat value: " + lat);
             double lng = a.get(z).getLng();
+            // Log.d("awebb", "lng value: " + lng);
             LatLng loc = new LatLng(lat, lng);
             switch (star) {
                 case 1:mMap.addMarker(new MarkerOptions().position(loc)
@@ -244,11 +269,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
 
+        // cant do this with only 1 rating
+        // we removed the last element and
+        // then try to remove nothing
         double lat = a.get(z-1).getLat();
+        // Log.d("awebb", "lat value: " + lat);
         double lng = a.get(z-1).getLng();
+        // Log.d("awebb", "3 locationKeeper.size() value: " + lng);
         LatLng loc = new LatLng(lat, lng);
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 17));
+        return a;
     }
 
     //adding in a dialog box new MarkerOptions().position(latlng).title("").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEn/RED/BLUE).snippet("NameOfBathroom, Rating, Review)));
@@ -306,12 +337,45 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20));
 		*/
 
-        mMap.setOnMapClickListener(this);
+        /*
+        Log.d("awebb", "first time map set up " );
+        //random variables unpacking the variables
+        double warLat = warrenLecture.latitude;
+        double warLng = warrenLecture.longitude;
+        double ebuLat = physicsEBU.latitude;
+        double ebuLng = physicsEBU.longitude;
+        double ebu2Lat = ebu2.latitude;
+        double ebu2Lng = ebu2.longitude;
+
+        locationKeeper.add(new LocationHolder("Warren Lecture Hall", 3, warLat, warLng));
+        locationKeeper.add(new LocationHolder("Physics Building", 3, ebuLat, ebuLng));
+        locationKeeper.add(new LocationHolder("CSE Building", 3, ebu2Lat, ebu2Lng));
+        mMap.addMarker(new MarkerOptions().position(ebu2)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("CSE Building"));
+        mMap.addMarker(new MarkerOptions().position(physicsEBU)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Physics Building"));
+        mMap.addMarker(new MarkerOptions().position(warrenLecture)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Warren Lecture Hall"));
+
+        */
+
+
+
+
+        // doing this check in the onCreate
+        // only calling this function the first time we use the map so no need for this check
+        // removed to not
+        // mMap.setOnMapClickListener(this);
+
         // NULL check to see if intent is null
         // if intent is null we populate the map w/ warren restroom
         // if intent is not null populate with new pin
-        // LatLng geisel = new LatLng(32.881145, -117.237394);
-        if(getIntent().getExtras() != null) {
+
+        // getting the intent
+        Intent intent = getIntent();
+        if(intent.getExtras() != null) {
+            Log.d("awebb", "non null intent onMapReady " );
+
             if (getIntent().getExtras().containsKey("bundle")) {
                 Intent restore = getIntent();
                 Bundle bun = restore.getBundleExtra("bundle");
@@ -319,7 +383,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 setUpMap(locationKeeper);
             }
         }
-        else {
+        else
+        {
+            Log.d("awebb", "first time onMapReady " );
             //random variables unpacking the variables
             double warLat = warrenLecture.latitude;
             double warLng = warrenLecture.longitude;
@@ -338,6 +404,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mMap.addMarker(new MarkerOptions().position(warrenLecture)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).snippet("Warren Lecture Hall"));
         }
+
     }
 
     //Location Coordinates
@@ -399,20 +466,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // going to decouple this from the UI so we can
     // use the click for control flow
     public void send(View view){
-        ArrayList<LocationHolder> aList = new ArrayList();
+        // ArrayList<LocationHolder> aList = new ArrayList();
         Intent intent = new Intent(getApplicationContext(), MapAdder.class);
-        intent.putExtra("array_list", aList);
+        intent.putExtra("array_list", locationKeeper);
 
 
-        Log.d("awebb", "1 locationKeeper.size() value: " + aList.size());
-        for (int i =0; i<aList.size();i++)
+        Log.d("awebb", "1st act send size " + locationKeeper.size());
+        /*
+        for (int i =0; i<locationKeeper.size();i++)
         {
-            LocationHolder x = aList.get(i);
+            LocationHolder x = locationKeeper.get(i);
             Log.d("awebb", "x.getSent value: " + x.getSent());
             // Log.d("awebb", "x.getCount value: " + x.getCount());
 
         }
-
+        */
         /*
 		//with bundle implementation
         Bundle bundle = new Bundle();
