@@ -271,16 +271,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng loc = new LatLng(lat, lng);
             switch (star) {
                 case 1:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).
+                                getSent()).snippet("" + a.get(z).getRating()+ "\n" + a.get(z).getCount() ));
                     break;
                 case 2:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)).title(a.get(z).getSent()).
+                                snippet("" + a.get(z).getRating()+ "\n" + a.get(z).getCount() ));
                     break;
                 case 3:mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).title(a.get(z).getSent()).
+                                snippet("" + a.get(z).getRating()+ "\n" + a.get(z).getCount() ));
                     break;
                 default: mMap.addMarker(new MarkerOptions().position(loc)
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).getSent()).snippet("" + a.get(z).getRating()));
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)).title(a.get(z).getSent()).
+                                snippet("" + a.get(z).getRating() + "\n" + a.get(z).getCount() ));
                     break;
             }
         }
