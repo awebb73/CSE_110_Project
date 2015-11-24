@@ -27,7 +27,7 @@ public class LocationHolder implements Parcelable {
         this.rating = rating;
         this.lat = lat;
         this.lng = lng;
-        this.count = 1;
+        this.count = 0;
     }
 
     public LocationHolder(Parcel source)

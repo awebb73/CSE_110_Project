@@ -58,7 +58,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng warrenLecture= new LatLng(32.8807907, -117.2343316);
     private LatLng physicsEBU = new LatLng(32.8811838, -117.2332927);
     private LatLng ebu2 = new LatLng(32.8814126, -117.2339695);
-    private double threshold = 0.000656;
+    private double threshold = 2; //0.0012;
     private LocationManager locationManager;
     private static Location location;
     // private LocationHolder holder;
@@ -245,13 +245,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // divide by count
             newAdd.setRating(multRat/newAdd.getCount());
             // set new info into array
-            a.get(locationManager).setRating(newAdd.getRating());
-            a.get(locationManager).incrementCount();
+            // a.get(locationManager).setRating(newAdd.getRating());
+            // a.get(locationManager).incrementCount();
         }
-        Log.d("awebb", "a.size: " + a.size());
+        // Log.d("awebb", "a.size: " + a.size());
         // removes the last element from the arrayList
         a.remove(a.size() - 1);
-        Log.d("awebb", "a.size after remove: " + a.size());
+        // Log.d("awebb", "a.size after remove: " + a.size());
         // iterate through the remaining list and
         // assign colors to the markers based on
         // the average of the rating
