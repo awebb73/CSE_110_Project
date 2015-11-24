@@ -1,7 +1,6 @@
 package com.group9.cse110project;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
@@ -34,9 +33,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.UiSettings;
-import com.parse.Parse;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import bolts.Task;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleMap.OnMapClickListener,
@@ -80,6 +87,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Enable Local Datastore.
+
         super.onCreate(savedInstanceState);
         //show error dialog if GoolglePlayServices not available
         if (!isGooglePlayServicesAvailable()) {
@@ -251,6 +260,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Log.d("awebb", "a.size: " + a.size());
         // removes the last element from the arrayList
         a.remove(a.size() - 1);
+        List<ParseObject> markerList = new ArrayList<ParseObject>();
+        ParseObject marker = null;
+
+        for(int i = 0; i < a.size(); i++) {
+            marker = new ParseObject("Marker");
+            marker.put("Rating", a.get(i).getRating());
+            marker.put("Count", a.get(i).getCount());
+            marker.put("Name", a.get(i).getSent());
+            markerList.add(marker);
+        }
+
+
+
+
+        marker.saveAllInBackground(markerList, new SaveCallback() {
+            @Override
+            public void done(com.parse.ParseException e) {
+                Log.d("CHAT OBJECT", " SAVED");
+                if (e == null)
+                    System.out.println("Marker array saved.");
+                else
+                    System.out.println("Failed marker save: " + e.toString());
+            }
+        });
+
+
         // Log.d("awebb", "a.size after remove: " + a.size());
         // iterate through the remaining list and
         // assign colors to the markers based on
@@ -288,6 +323,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     break;
             }
         }
+
+        Log.d("kevin", "name of marker" + a.get(1).getSent());
 
         // cant do this with only 1 rating
         // we removed the last element and
@@ -362,6 +399,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         bestProvider = locationManager.getBestProvider(criteria, true);
 
         enableMyLocation();
+
+        ParseQuery query = ParseQuery.getQuery("Marker");
+        query.orderByDescending("updatedAt");
+        //query.whereEqualTo("createdBy", ParseUser.getCurrentUser());
+        for(int i = 0; i < locationKeeper.size(); i++){
+            //gets all LocationHolder objects with locationKeeper names
+            LocationHolder permanentLocation = (LocationHolder) locationKeeper.get(i);
+            query.whereEqualTo("Name", permanentLocation.getSent());
+            try {
+                ParseObject top = query.getFirst();
+                int count = top.getInt("Count");
+                float rating = top.getInt("Rating");
+                String name = top.getString("Name");
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+
 
 		// get current location
 		double latitude = location.getLatitude();
